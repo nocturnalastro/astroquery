@@ -53,7 +53,7 @@ class HeasarcClass(BaseQuery):
         collens = [int(float(y[1:]))
                    for x, y in header.items() if "TFORM" in x]
         new_table = []
-
+        content = str(content, encoding="UTF-8")
         old_table = content.split("END")[-1].strip()
         for line in old_table.split("\n"):
             newline = []
@@ -67,7 +67,7 @@ class HeasarcClass(BaseQuery):
                         newline[-1] = "-1".rjust(clen) + " "
             new_table.append("".join(newline))
 
-        data = BytesIO(content.replace(old_table, "\n".join(new_table)))
+        data = BytesIO(bytes(content.replace(old_table, "\n".join(new_table)), encoding="UTF-8"))
         return Table.read(data, hdu=1)
 
     def _parse_result(self, response, verbose=False):
