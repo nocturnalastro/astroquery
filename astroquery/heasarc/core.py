@@ -20,7 +20,7 @@ class HeasarcClass(BaseQuery):
     URL = conf.server
     TIMEOUT = conf.timeout
 
-    def query_object_async(self, object_name, mission, cache=True,
+    def query_object_async(self, object_name, table, cache=True,
                            get_query_payload=False,
                            display_mode='FitsDisplay'):
         """TODO: document this!
@@ -30,7 +30,7 @@ class HeasarcClass(BaseQuery):
         request_payload = dict()
         request_payload['Entry'] = object_name
         request_payload['tablehead'] = ('BATCHRETRIEVALCATALOG_2.0 {}'
-                                        .format(mission))
+                                        .format(table))
         request_payload['Action'] = 'Query'
         request_payload['displaymode'] = display_mode
 
@@ -69,6 +69,26 @@ class HeasarcClass(BaseQuery):
 
         data = BytesIO(bytes(content.replace(old_table, "\n".join(new_table)), encoding="UTF-8"))
         return Table.read(data, hdu=1)
+
+    def query_id_async(self, obsid, table, op="=", cache=True,
+                       get_query_payload=False,
+                       display_mode='FitsDisplay'):
+        """TODO: document this!
+        (maybe start by copying over from some other service.)
+        """
+        request_payload = dict()
+        request_payload['Entry'] = ""
+        request_payload['tablehead'] = 'name=heasarc_{table}'.format(table=table)
+        request_payload['bparam_obsid'] = "{op}{obsid}".format(op=op, obsid=obsid)
+        request_payload['Action'] = 'Query'
+        request_payload['displaymode'] = display_mode
+
+        if get_query_payload:
+            return request_payload
+
+        response = self._request('GET', self.URL, params=request_payload,
+                                 timeout=self.TIMEOUT, cache=cache)
+        return response
 
     def _parse_result(self, response, verbose=False):
         # if verbose is False then suppress any VOTable related warnings
