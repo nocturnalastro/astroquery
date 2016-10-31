@@ -54,8 +54,9 @@ class HeasarcClass(BaseQuery):
                    for x, y in header.items() if "TFORM" in x]
         new_table = []
         content = str(content, encoding="UTF-8")
-        old_table = content.split("END")[-1].strip()
-        for line in old_table.split("\n"):
+        # stops strip from cleaning \n away which causes errors when line ends in spaces
+        old_table = content.split("END")[-1].strip(" ")
+        for line in [ln for ln in old_table.split("\n") if len(ln.strip()) > 0]:
             newline = []
             for n, tup in enumerate(zip(colstart, collens), start=1):
                 cstart, clen = tup
@@ -66,7 +67,6 @@ class HeasarcClass(BaseQuery):
                         # extra space is required to sperate column
                         newline[-1] = "-1".rjust(clen) + " "
             new_table.append("".join(newline))
-
         data = BytesIO(bytes(content.replace(old_table, "\n".join(new_table)), encoding="UTF-8"))
         return Table.read(data, hdu=1)
 
